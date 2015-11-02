@@ -35,7 +35,10 @@ public class HttpRequest {
 	method =tmp[0]/* Fill in */;
 	URI = tmp[1]/* Fill in */;
 	version = tmp[2]/* Fill in */;
-
+	
+	//System.out.println("tmp : "  + tmp[0] + " / " + tmp[1] + " / " +tmp[2]);
+	
+	
 	System.out.println("URI is: " + URI);
 
 	if (!method.equals("GET")) {

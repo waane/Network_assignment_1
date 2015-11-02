@@ -25,7 +25,7 @@ public class HttpResponse {
     byte[] body = new byte[MAX_OBJECT_SIZE];
 
     /** Read response from server. */
-    public HttpResponse(BufferedReader fromServer) {
+    public HttpResponse(DataInputStream fromServer) {
 	/* Length of the object */
 	int length = -1;
 	boolean gotStatusLine = false;
@@ -61,9 +61,9 @@ public class HttpResponse {
 
 	try {
 	    int bytesRead = 0;
-	    //byte buf[] = new byte[BUF_SIZE];
+	    byte buf[] = new byte[BUF_SIZE];
 	    //////////////////////////////////
-	    char buf[] = new char[BUF_SIZE];
+	    //char buf[] = new char[BUF_SIZE];
 	    /////////////////////////////////
 	    boolean loop = false;
 

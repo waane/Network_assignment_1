@@ -59,8 +59,8 @@ public class ProxyCache {
 	}
 	/* Read response and forward it to client */
 	try {
-	    BufferedReader fromServer = new BufferedReader(server.getInputStream())/* Fill in */;
-	    response = new HttpResponse(fromServer);/* Fill in */
+		DataInputStream  fromServer = new DataInputStream(server.getInputStream())/* Fill in */;
+	    response = new HttpResponse(fromServer);/* Fill in */ //////////////여기서 멈춤.
 	    DataOutputStream toClient =  new DataOutputStream(client.getOutputStream())/* Fill in */;
 	    /* Fill in */
 	    toClient.writeBytes(response.toString());
@@ -82,7 +82,8 @@ public class ProxyCache {
 	int myPort = 0;
 	
 	try {
-	    myPort = Integer.parseInt(args[0]);
+	    //myPort = Integer.parseInt(args[0]);
+		myPort = 8888;
 	} catch (ArrayIndexOutOfBoundsException e) {
 	    System.out.println("Need port number as argument");
 	    System.exit(-1);
@@ -99,7 +100,7 @@ public class ProxyCache {
 	
 	while (true) {
 	    try {
-		client = /* Fill in */;
+		client = socket.accept();/* Fill in */
 		handle(client);
 	    } catch (IOException e) {
 		System.out.println("Error reading request from client: " + e);
