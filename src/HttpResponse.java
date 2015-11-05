@@ -27,6 +27,8 @@ public class HttpResponse {
 	byte[] body = new byte[MAX_OBJECT_SIZE];
 
 	/** Read response from server. */
+	//public HttpResponse(DataInputStream fromServer) {
+	@SuppressWarnings("deprecation")
 	public HttpResponse(DataInputStream fromServer) {
 		/* Length of the object */
 		int length = -1;
@@ -35,7 +37,7 @@ public class HttpResponse {
 		/* First read status line and response headers */
 		try {
 			
-			
+			System.out.println("여기까지");
 			String line = fromServer.readLine();/* Fill in */   ///////////////제출시 주석해제
 			
 

@@ -53,7 +53,8 @@ public class ProxyCache {
 			server = new Socket(request.getHost(), request.getPort())/* Fill in */;
 
 			DataOutputStream toServer = new DataOutputStream(server.getOutputStream())/* Fill in */;
-			toServer.writeBytes(request.toString());
+			
+			toServer.writeBytes(request.toString()); /* fill in */
 	
 			System.out.println("request : " + request.toString());
 			/* Fill in */
