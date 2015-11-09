@@ -27,95 +27,95 @@ public class HttpResponse {
 	byte[] body = new byte[MAX_OBJECT_SIZE];
 
 	/** Read response from server. */
-	//public HttpResponse(DataInputStream fromServer) {
 	@SuppressWarnings("deprecation")
 	public HttpResponse(DataInputStream fromServer) {
 		/* Length of the object */
 		int length = -1;
+		int is404 = 0;
 		boolean gotStatusLine = false;
-
-		/* First read status line and response headers */
 		try {
-			
-			System.out.println("여기까지");
-			String line = fromServer.readLine();/* Fill in */   ///////////////제출시 주석해제
-			
+			/* First read status line and response headers */
+			try {
 
-			/// test /////
-			//BufferedReader br = new BufferedReader(new InputStreamReader(fromServer, "UTF-8"));
-			//String line = br.readLine();
-			/////////////
-			
-			
-			while (line.length() != 0) {
-				if (!gotStatusLine) {
-					statusLine = line;
-					gotStatusLine = true;
-				} else {
-					headers += line + CRLF;
+				String line = fromServer.readLine();/* Fill in */
+				while (line.length() != 0) {
+					if (!gotStatusLine) {
+						statusLine = line;
+						gotStatusLine = true;
+						
+					} else {
+						headers += line + CRLF;
+					}
+					if(statusLine.contains("404")){
+						is404 = 1;
+						
+					}//404 에러가 있는경우 헤더만 읽고 body 는 읽지 않기위한 플래그 설정.			
+						/*
+						 * Get length of content as indicated by Content-Length
+						 * header. Unfortunately this is not present in every
+						 * response. Some servers return the header
+						 * "Content-Length", others return "Content-length". You
+						 * need to check for both here.
+						 */
+					if (line.startsWith("Content-Length:")
+							|| line.startsWith("Content-length:")) {
+						String[] tmp = line.split(" ");
+						length = Integer.parseInt(tmp[1]);
+					}
+					line = fromServer.readLine();
+				}
+			} catch (IOException e) {
+				System.out.println("Error reading headers from server: " + e);
+				return;
+			}
+
+			try {
+				int bytesRead = 0;
+				byte buf[] = new byte[BUF_SIZE];
+				boolean loop = false;
+
+				/*
+				 * If we didn't get Content-Length header, just loop until the
+				 * connection is closed.
+				 */
+				if (length == -1) {
+					loop = true;
 				}
 
 				/*
-				 * Get length of content as indicated by Content-Length header.
-				 * Unfortunately this is not present in every response. Some
-				 * servers return the header "Content-Length", others return
-				 * "Content-length". You need to check for both here.
+				 * Read the body in chunks of BUF_SIZE and copy the chunk into
+				 * body. Usually replies come back in smaller chunks than
+				 * BUF_SIZE. The while-loop ends when either we have read
+				 * Content-Length bytes or when the connection is closed (when
+				 * there is no Connection-Length in the response.
 				 */
-				if (line.startsWith("Content-Length:")
-						|| line.startsWith("Content-length:")) {
-					String[] tmp = line.split(" ");
-					length = Integer.parseInt(tmp[1]);
+				while (bytesRead < length || loop) {
+					/* Read it in as binary data */
+					int res = fromServer.read(buf, 0, BUF_SIZE);
+					if(is404 ==1){
+						res = -1;
+						System.out.println("404 error Occured Skip Reading Body");
+					}//404 에러의 경우 res 값을 -1로 바꿔 바로 while문에서 빠져나가도록한다.
+					if (res == -1) {
+						break;
+					}
+					/*
+					 * Copy the bytes into body. Make sure we don't exceed the
+					 * maximum object size.
+					 */
+					for (int i = 0; i < res
+							&& (i + bytesRead) < MAX_OBJECT_SIZE; i++) {
+						body[bytesRead + i] = buf[i];/* Fill in */
+					}
+					bytesRead += res;
 				}
-				//line = fromServer.readLine(); //////////////////////////////////////마찬가지 제출시 주석해제.
-				line = fromServer.readLine();
-				
+			} catch (IOException e) {
+				System.out.println("Error reading response body: " + e);
+				return;
 			}
-		} catch (IOException e) {
-			System.out.println("Error reading headers from server: " + e);
-			return;
-		}
+		} catch (Exception e) {
+			System.out.println("null error : " + e);
 
-		try {
-			int bytesRead = 0;
-			byte buf[] = new byte[BUF_SIZE];
-			// ////////////////////////////////
-			// char buf[] = new char[BUF_SIZE];
-			// ///////////////////////////////
-			boolean loop = false;
-
-			/*
-			 * If we didn't get Content-Length header, just loop until the
-			 * connection is closed.
-			 */
-			if (length == -1) {
-				loop = true;
-			}
-
-			/*
-			 * Read the body in chunks of BUF_SIZE and copy the chunk into body.
-			 * Usually replies come back in smaller chunks than BUF_SIZE. The
-			 * while-loop ends when either we have read Content-Length bytes or
-			 * when the connection is closed (when there is no Connection-Length
-			 * in the response.
-			 */
-			while (bytesRead < length || loop) {
-				/* Read it in as binary data */
-				int res = fromServer.read(buf, 0, BUF_SIZE);
-				if (res == -1) {
-					break;
-				}
-				/*
-				 * Copy the bytes into body. Make sure we don't exceed the
-				 * maximum object size.
-				 */
-				for (int i = 0; i < res && (i + bytesRead) < MAX_OBJECT_SIZE; i++) {
-					/* Fill in */
-				}
-				bytesRead += res;
-			}
-		} catch (IOException e) {
-			System.out.println("Error reading response body: " + e);
-			return;
 		}
 
 	}

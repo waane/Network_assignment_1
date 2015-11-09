@@ -24,52 +24,57 @@ public class HttpRequest {
 
 	/** Create HttpRequest by reading it from the client socket */
 	public HttpRequest(BufferedReader from) {
-		String firstLine = "";
+
 		try {
-			firstLine = from.readLine();
-		} catch (IOException e) {
-			System.out.println("Error reading request line: " + e);
-		}
-
-		String[] tmp = firstLine.split(" ");
-		method = tmp[0]/* Fill in */;
-		URI = tmp[1]/* Fill in */;
-		version = tmp[2]/* Fill in */;
-
-		// System.out.println("tmp : " + tmp[0] + " / " + tmp[1] + " / "
-		// +tmp[2]);
-
-		System.out.println("URI is: " + URI);
-
-		if (!method.equals("GET")) {
-			System.out.println("Error: Method not GET");
-		}
-		try {
-			String line = from.readLine();
-			while (line.length() != 0) {
-				headers += line + CRLF;
-				/*
-				 * We need to find host header to know which server to contact
-				 * in case the request URI is not complete.
-				 */
-				if (line.startsWith("Host:")) {
-					tmp = line.split(" ");
-					if (tmp[1].indexOf(':') > 0) {
-						String[] tmp2 = tmp[1].split(":");
-						host = tmp2[0];
-						port = Integer.parseInt(tmp2[1]);
-					} else {
-						host = tmp[1];
-						port = HTTP_PORT;
-					}
-				}
-				line = from.readLine();
+			
+			String firstLine = "";
+			try {
+				firstLine = from.readLine();
+			} catch (IOException e) {
+				System.out.println("Error reading request line: " + e);
 			}
-		} catch (IOException e) {
-			System.out.println("Error reading from socket: " + e);
-			return;
+
+			String[] tmp = firstLine.split(" ");
+			method = tmp[0]/* Fill in */;
+			URI = tmp[1]/* Fill in */;
+			version = tmp[2]/* Fill in */;
+
+			System.out.println("URI is: " + URI);
+
+			if (!method.equals("GET")) {
+				System.out.println("Error: Method not GET");
+			}
+			try {
+				String line = from.readLine();
+				while (line.length() != 0) {
+					headers += line + CRLF;
+					/*
+					 * We need to find host header to know which server to
+					 * contact in case the request URI is not complete.
+					 */
+					if (line.startsWith("Host:")) {
+						tmp = line.split(" ");
+						if (tmp[1].indexOf(':') > 0) {
+							String[] tmp2 = tmp[1].split(":");
+							host = tmp2[0];
+							port = Integer.parseInt(tmp2[1]);
+
+						} else {
+							host = tmp[1];
+							port = HTTP_PORT;
+						}
+					}
+					line = from.readLine();
+				}
+			} catch (IOException e) {
+				System.out.println("Error reading from socket: " + e);
+				return;
+			}
+			System.out.println("Host to contact is: " + host + " at port "
+					+ port);
+		} catch (Exception e) {
+			System.out.println("error : " + e);
 		}
-		System.out.println("Host to contact is: " + host + " at port " + port);
 	}
 
 	/** Return host for which this request is intended */
