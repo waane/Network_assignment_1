@@ -31,7 +31,7 @@ public class HttpResponse {
 	public HttpResponse(DataInputStream fromServer) {
 		/* Length of the object */
 		int length = -1;
-		int is404 = 0;
+		boolean is404 = false;
 		boolean gotStatusLine = false;
 		try {
 			/* First read status line and response headers */
@@ -47,7 +47,7 @@ public class HttpResponse {
 						headers += line + CRLF;
 					}
 					if(statusLine.contains("404")){
-						is404 = 1;
+						is404 = true;
 						
 					}//404 에러가 있는경우 헤더만 읽고 body 는 읽지 않기위한 플래그 설정.			
 						/*
@@ -92,7 +92,7 @@ public class HttpResponse {
 				while (bytesRead < length || loop) {
 					/* Read it in as binary data */
 					int res = fromServer.read(buf, 0, BUF_SIZE);
-					if(is404 ==1){
+					if(is404){
 						res = -1;
 						System.out.println("404 error Occured Skip Reading Body");
 					}//404 에러의 경우 res 값을 -1로 바꿔 바로 while문에서 빠져나가도록한다.

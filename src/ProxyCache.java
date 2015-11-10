@@ -16,10 +16,23 @@ public class ProxyCache {
 	private static ServerSocket socket;
 
 	private static Map<String, String> cache = new Hashtable<String, String>();
+	
+	/** Create the ProxyCache object and the socket */
+	public static void init(int p) {
+		port = p;
+		try {
+			socket = new ServerSocket(port);
+		} catch (IOException e) {
+			System.out.println("Error creating socket: " + e);
+			System.exit(-1);
+		}
+	}
+
 	public static void handle(Socket client) {
 		Socket server = null;
 		HttpRequest request = null;
 		HttpResponse response = null;
+		//byte[] cache = null;
 
 		/*
 		 * Process request. If there are any exceptions, then simply return and
@@ -31,55 +44,44 @@ public class ProxyCache {
 		try {
 			System.out.println("-------------------start---------------------");
 			BufferedReader fromClient = new BufferedReader(
-					new InputStreamReader(client.getInputStream()))/* Fill in */;
-			request = new HttpRequest(fromClient);/* Fill in */
+					new InputStreamReader(client.getInputStream()));
+			request = new HttpRequest(fromClient);
 
 		} catch (IOException e) {
 			System.out.println("Error reading request from client: " + e);
-			//System.out.println("-------------------end----------------------");
 			drawEndLine();
 			return;
 		}
 		/* Send request to server */
 		try {
-			/* Open socket and write requst to socket */
-			server = new Socket(request.getHost(), request.getPort())/* Fill in */;
-
-			DataOutputStream toServer = new DataOutputStream(
-					server.getOutputStream())/* Fill in */;
-
+			/* Open socket and write request to socket */
+			server = new Socket(request.getHost(), request.getPort());	
+			DataOutputStream toServer = new DataOutputStream(server.getOutputStream());
 			toServer.writeBytes(request.toString());
-			System.out.println("\nRequest with Header:" + request.toString());
 
+			System.out.println("\nRequest with Header:" + request.toString());
 		} catch (UnknownHostException e) {
 			System.out.println("Unknown host: " + request.getHost());
-			//System.out.println("-------------------end----------------------");
 			System.out.println(e);
 			drawEndLine();
 			return;
 		} catch (IOException e) {
 			System.out.println("Error writing request to server: " + e);
-			//System.out.println("-------------------end----------------------");
 			drawEndLine();
 			return;
 		}
 		/* Read response and forward it to client */
 		try {
 			byte[] cache = ProxyCache.uncaching(request.URI);
-			if (cache.length == 0) {
-				DataInputStream fromServer = new DataInputStream(
-						server.getInputStream())/* Fill in */;
-				response = new HttpResponse(fromServer);/* Fill in *///
-				DataOutputStream toClient = new DataOutputStream(
-						client.getOutputStream())/* Fill in */;
-				/* Fill in */
+			if (cache.length==0) {
+				DataInputStream fromServer = new DataInputStream(server.getInputStream());
+				response = new HttpResponse(fromServer);
+				DataOutputStream toClient = new DataOutputStream(client.getOutputStream());
 				toClient.writeBytes(response.toString());
 				toClient.write(response.body);
 
-				
 				ProxyCache.caching(request, response); //캐쉬에 저장.
 				System.out.println("Response with Header: " + response.toString());
-				//System.out.println("--------------------end----------------------");
 				drawEndLine();
 				/* Write response to client. First headers, then body */
 				client.close();
@@ -89,10 +91,8 @@ public class ProxyCache {
 				DataOutputStream toClient = new DataOutputStream(client.getOutputStream());
 				toClient.write(cache);
 				client.close();
-				server.close();
+				server.close(); 
 			}
-			/* Insert object into the cache */
-			/* Fill in (optional exercise only) */
 		} catch (IOException e) {
 			System.out.println("Error writing response to client: " + e);
 			drawEndLine();
@@ -144,8 +144,7 @@ public class ProxyCache {
 	}
 	
 	
-	public synchronized static void caching(HttpRequest request,
-			HttpResponse response) throws IOException {
+	public synchronized static void caching(HttpRequest request, HttpResponse response) throws IOException {
 		File cacheFile;
 		DataOutputStream fileStream;
 
@@ -155,7 +154,6 @@ public class ProxyCache {
 		fileStream.write(response.body); /* body */
 		fileStream.close();
 		cache.put(request.URI, cacheFile.getAbsolutePath());
-		//System.out.println("save at cache file: " + request.URI + " location : "+ cacheFile.getAbsolutePath());
 	}
 
 	public synchronized static byte[] uncaching(String uri) throws IOException {
@@ -163,7 +161,6 @@ public class ProxyCache {
 		FileInputStream fileStream;
 		String hashfile;
 		byte[] byteCached;
-
 		if ((hashfile = cache.get(uri)) != null) {
 			filecached = new File(hashfile);
 			fileStream = new FileInputStream(filecached);
@@ -178,20 +175,8 @@ public class ProxyCache {
 			System.out.println("No hit on cache : " + uri);
 			return byteCached = new byte[0];
 		}
-
-	}
-
-	/** Create the ProxyCache object and the socket */
-	public static void init(int p) {
-		port = p;
-		try {
-			socket = new ServerSocket(port);
-		} catch (IOException e) {
-			System.out.println("Error creating socket: " + e);
-			System.exit(-1);
-		}
-	}
 	
+	}
 	public static void drawEndLine(){
 		System.out.println("--------------------end----------------------\n");
 	}
