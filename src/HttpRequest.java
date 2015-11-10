@@ -35,9 +35,9 @@ public class HttpRequest {
 			}
 
 			String[] tmp = firstLine.split(" ");
-			method = tmp[0]/* Fill in */;
-			URI = tmp[1]/* Fill in */;
-			version = tmp[2]/* Fill in */;
+			method = tmp[0];
+			URI = tmp[1];
+			version = tmp[2];
 
 			System.out.println("URI is: " + URI);
 

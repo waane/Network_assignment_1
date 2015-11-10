@@ -37,7 +37,7 @@ public class HttpResponse {
 			/* First read status line and response headers */
 			try {
 
-				String line = fromServer.readLine();/* Fill in */
+				String line = fromServer.readLine();
 				while (line.length() != 0) {
 					if (!gotStatusLine) {
 						statusLine = line;

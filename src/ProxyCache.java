@@ -16,6 +16,7 @@ public class ProxyCache {
 	private static ServerSocket socket;
 
 	private static Map<String, String> cache = new Hashtable<String, String>();
+	//캐시정보를 저장하기 위한 hashtable MAP
 	
 	/** Create the ProxyCache object and the socket */
 	public static void init(int p) {
@@ -32,8 +33,7 @@ public class ProxyCache {
 		Socket server = null;
 		HttpRequest request = null;
 		HttpResponse response = null;
-		//byte[] cache = null;
-
+		boolean needCaching = false;
 		/*
 		 * Process request. If there are any exceptions, then simply return and
 		 * end this request. This unfortunately means the client will hang for a
@@ -42,9 +42,10 @@ public class ProxyCache {
 
 		/* Read request */
 		try {
-			System.out.println("-------------------start---------------------");
+			
 			BufferedReader fromClient = new BufferedReader(
 					new InputStreamReader(client.getInputStream()));
+			System.out.println("-------------------start---------------------");
 			request = new HttpRequest(fromClient);
 
 		} catch (IOException e) {
@@ -57,8 +58,11 @@ public class ProxyCache {
 			/* Open socket and write request to socket */
 			server = new Socket(request.getHost(), request.getPort());	
 			DataOutputStream toServer = new DataOutputStream(server.getOutputStream());
-			toServer.writeBytes(request.toString());
 
+			if ((cache.get(request.URI)) == null) {
+				needCaching = true;
+				toServer.writeBytes(request.toString());
+			}//캐쉬에 없으면 요청을 보낸다.  
 			System.out.println("\nRequest with Header:" + request.toString());
 		} catch (UnknownHostException e) {
 			System.out.println("Unknown host: " + request.getHost());
@@ -73,20 +77,23 @@ public class ProxyCache {
 		/* Read response and forward it to client */
 		try {
 			byte[] cache = ProxyCache.uncaching(request.URI);
-			if (cache.length==0) {
+			
+			if (cache.length==0 && needCaching) {
 				DataInputStream fromServer = new DataInputStream(server.getInputStream());
 				response = new HttpResponse(fromServer);
 				DataOutputStream toClient = new DataOutputStream(client.getOutputStream());
+				
+				/* Write response to client. First headers, then body */
 				toClient.writeBytes(response.toString());
 				toClient.write(response.body);
-
 				ProxyCache.caching(request, response); //캐쉬에 저장.
 				System.out.println("Response with Header: " + response.toString());
 				drawEndLine();
-				/* Write response to client. First headers, then body */
+				
 				client.close();
 				server.close();
 			}
+			
 			else{
 				DataOutputStream toClient = new DataOutputStream(client.getOutputStream());
 				toClient.write(cache);
@@ -128,7 +135,7 @@ public class ProxyCache {
 
 		while (true) {
 			try {
-				client = socket.accept();/* Fill in */
+				client = socket.accept();
 				handle(client);
 
 			} catch (IOException e) {
@@ -168,7 +175,6 @@ public class ProxyCache {
 			fileStream.read(byteCached);
 			System.out.println("Hit on cache : " + uri + "\n");
 			drawEndLine();
-			//System.out.println("---------------end-----------------");
 			fileStream.close();
 			return byteCached;
 		} else {
